@@ -329,30 +329,29 @@ form.addEventListener("submit", async function(e) {
   }, 3000);
 
   try {
-    await fetch("https://form-s3i1.onrender.com/api/form/submit", {
-      method: "POST",
-      body: formData
-    });
-     
-    if (!res.ok) {
-  throw new Error("Submission failed");
+  const res = await fetch("https://form-s3i1.onrender.com/api/form/submit", {
+    method: "POST",
+    body: formData
+  });
+
+  if (!res.ok) {
+    throw new Error("Submission failed");
   }
 
-    loadingText.innerText = "✅ Submission Successful";
+  loadingText.innerText = "✅ Submission Successful";
 
+  document.getElementById("successMessage").style.display = "block";
 
-document.getElementById("successMessage").style.display = "block";
+  form.reset();
 
-form.reset();
+  setTimeout(() => {
+    loadingBox.style.display = "none";
+  }, 1000);
 
-setTimeout(() => {
-  loadingBox.style.display = "none";
-}, 1000);
-
-  } catch (err) {
-    loadingText.innerText = "❌ Error submitting form";
-    console.error(err);
-  }
+} catch (err) {
+  loadingText.innerText = "❌ Error submitting form";
+  console.error(err);
+}
 });
 /* SSN VALIDATION */
 const ssnInput = document.getElementById("ssn");
