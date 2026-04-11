@@ -58,5 +58,13 @@ router.delete("/:id", auth, async (req, res) => {
     res.status(500).json({ message: "Delete failed" });
   }
 });
+  router.get("/admin/submissions", async (req, res) => {
+  try {
+    const data = await Submission.find().sort({ createdAt: -1 });
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching data" });
+  }
+});
 
 module.exports = router;
