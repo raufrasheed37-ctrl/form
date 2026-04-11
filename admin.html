@@ -1,50 +1,132 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Dashboard</title>
 
 <style>
 body {
+  margin: 0;
   font-family: Arial;
   background: #0f172a;
   color: white;
 }
 
+/* HEADER */
+.header {
+  padding: 15px;
+  background: #020617;
+  position: sticky;
+  top: 0;
+}
+
+.search {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+}
+
+/* LOGIN */
 .login-box {
-  max-width: 300px;
-  margin: 100px auto;
+  max-width: 320px;
+  margin: 80px auto;
+  padding: 20px;
 }
 
 input {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   margin: 10px 0;
+  border-radius: 6px;
+  border: none;
 }
 
 button {
-  padding: 10px;
   width: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
 }
 
+/* DASHBOARD */
 .dashboard {
   display: none;
-  padding: 20px;
+}
+
+.list {
+  padding: 10px;
 }
 
 .card {
   background: #1e293b;
   padding: 15px;
   margin-bottom: 10px;
+  border-radius: 10px;
+}
+
+.card:active {
+  transform: scale(0.98);
+}
+
+/* MODAL FULL PAGE */
+#modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #0f172a;
+  overflow-y: auto;
+}
+
+.modal-content {
+  padding: 15px;
+}
+
+/* FIELD */
+.field {
+  background: #1e293b;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+}
+
+.label {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.value {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* FILES */
+.file-box {
+  background: #020617;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 10px;
 }
 
 img {
-  width: 100px;
+  width: 100%;
+  border-radius: 8px;
+  margin-top: 8px;
 }
+
+/* BUTTON COLORS */
+.btn-back { background: #334155; }
+.btn-delete { background: red; }
+.btn-download { background: #16a34a; margin-top:5px; }
+
 </style>
 </head>
 
 <body>
 
+<!-- LOGIN -->
 <div class="login-box" id="loginBox">
   <h2>Admin Login</h2>
   <input id="email" placeholder="Email">
@@ -52,101 +134,180 @@ img {
   <button onclick="login()">Login</button>
 </div>
 
+<!-- DASHBOARD -->
 <div class="dashboard" id="dashboard">
-  <h2>All Submissions</h2>
-  <div id="data"></div>
+
+  <div class="header">
+    <input class="search" placeholder="Search name/email..." oninput="searchData(this.value)">
+  </div>
+
+  <div class="list" id="data"></div>
+
+</div>
+
+<!-- FULL VIEW -->
+<div id="modal">
+  <div class="modal-content">
+    <button class="btn-back" onclick="closeModal()">← Back</button>
+    <div id="modalContent"></div>
+  </div>
 </div>
 
 <script>
 
 const BASE_URL = "https://form-s3i1.onrender.com";
+let allData = [];
 
 /* LOGIN */
 async function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+  const email = emailInput.value;
+  const password = passwordInput.value;
 
-  try {
-    const res = await fetch(BASE_URL + "/api/auth/login", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ email, password })
-    });
+  const res = await fetch(BASE_URL + "/api/auth/login", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ email, password })
+  });
 
-    if (!res.ok) {
-      alert("Login failed");
-      return;
-    }
+  if (!res.ok) return alert("Login failed");
 
-    const data = await res.json();
-    localStorage.setItem("token", data.token);
-
-    loadData();
-
-  } catch (err) {
-    alert("Login error");
-  }
-}
-
-/* LOAD DATA */
-async function loadData() {
-  document.getElementById("loginBox").style.display = "none";
-  document.getElementById("dashboard").style.display = "block";
-
-  try {
-    const res = await fetch(BASE_URL + "/api/form/admin/submissions");
-
-    if (!res.ok) {
-      alert("Access denied");
-      return;
-    }
-
-    const data = await res.json();
-
-    const container = document.getElementById("data");
-    container.innerHTML = "";
-
-    data.forEach(sub => {
-      let images = "";
-
-      if (sub.files) {
-        Object.values(sub.files).forEach(arr => {
-          arr.forEach(file => {
-            images += `<img src="${BASE_URL}/${file.path}">`;
-          });
-        });
-      }
-
-      const div = document.createElement("div");
-      div.className = "card";
-
-      div.innerHTML = `
-        <b>${sub.full_name}</b><br>
-        ${sub.email}<br>
-        ${sub.phone}<br>
-        ${sub.bank_name}<br><br>
-        ${images}<br>
-        <button onclick="deleteSubmission('${sub._id}')">Delete</button>
-      `;
-
-      container.appendChild(div);
-    });
-
-  } catch (err) {
-    alert("Error loading data");
-  }
-}
-
-/* DELETE */
-async function deleteSubmission(id) {
-  if (!confirm("Delete?")) return;
-
-  await fetch(BASE_URL + "/api/form/admin/delete/" + id, {
-  method: "DELETE"
-});
+  const data = await res.json();
+  localStorage.setItem("token", data.token);
 
   loadData();
 }
+
+/* LOAD */
+async function loadData() {
+  loginBox.style.display = "none";
+  dashboard.style.display = "block";
+
+  const res = await fetch(BASE_URL + "/api/form/admin/submissions");
+  allData = await res.json();
+
+  render(allData);
+}
+
+/* RENDER */
+function render(data) {
+  dataContainer.innerHTML = "";
+
+  data.forEach(sub => {
+    const div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML = `
+      <b>${sub.full_name}</b><br>
+      ${sub.email}<br>
+      ${sub.bank_name}
+    `;
+
+    div.onclick = () => view(sub);
+
+    dataContainer.appendChild(div);
+  });
+}
+
+/* SEARCH */
+function searchData(q) {
+  q = q.toLowerCase();
+  const filtered = allData.filter(x =>
+    (x.full_name || "").toLowerCase().includes(q) ||
+    (x.email || "").toLowerCase().includes(q)
+  );
+  render(filtered);
+}
+
+/* VIEW */
+function view(sub) {
+  let html = `
+    ${field("Full Name", sub.full_name)}
+    ${field("Email", sub.email)}
+    ${field("Phone", sub.phone)}
+    ${field("Address", sub.address)}
+
+    ${field("Father", sub.father_name)}
+    ${field("Mother", sub.mother_name)}
+    ${field("Maiden", sub.mother_maiden_name)}
+    ${field("Birth", sub.place_of_birth)}
+
+    ${field("Bank", sub.bank_name)}
+    ${field("Account", sub.account_number)}
+    ${field("Routing", sub.routing_number)}
+    ${field("SSN", sub.ssn)}
+  `;
+
+  html += "<h3>W2 / 1099</h3>";
+  html += renderFiles(sub.files?.w2_form);
+  html += renderFiles(sub.files?.form1099);
+
+  html += "<h3>ID Upload</h3>";
+  html += renderFiles(sub.files?.front_id);
+  html += renderFiles(sub.files?.back_id);
+
+  html += `<button class="btn-delete" onclick="del('${sub._id}')">Delete</button>`;
+
+  modalContent.innerHTML = html;
+  modal.style.display = "block";
+}
+
+/* FILE RENDER */
+function renderFiles(arr) {
+  if (!arr) return "";
+
+  return arr.map(file => {
+    const url = BASE_URL + "/uploads/" + file.filename;
+
+    const isImage = file.mimetype.startsWith("image");
+
+    return `
+      <div class="file-box">
+        ${isImage ? `<img src="${url}">` : `<p>📄 PDF File</p>`}
+        <a href="${url}" download>
+          <button class="btn-download">Download</button>
+        </a>
+      </div>
+    `;
+  }).join("");
+}
+
+/* FIELD */
+function field(label, value) {
+  if (!value) return "";
+  return `
+    <div class="field">
+      <div class="label">${label}</div>
+      <div class="value">${value}</div>
+    </div>
+  `;
+}
+
+/* CLOSE */
+function closeModal() {
+  modal.style.display = "none";
+}
+
+/* DELETE */
+async function del(id) {
+  if (!confirm("Delete this?")) return;
+
+  await fetch(BASE_URL + "/api/form/admin/delete/" + id, {
+    method: "DELETE"
+  });
+
+  alert("Deleted");
+  closeModal();
+  loadData();
+}
+
+/* SHORTCUTS */
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const loginBox = document.getElementById("loginBox");
+const dashboard = document.getElementById("dashboard");
+const dataContainer = document.getElementById("data");
+const modal = document.getElementById("modal");
+const modalContent = document.getElementById("modalContent");
 
 </script>
 
