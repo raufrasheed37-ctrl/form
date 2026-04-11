@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const Submission = require("../models/Submission");
-const auth = require("../middleware/auth");
 
 /* FILE STORAGE */
 const storage = multer.diskStorage({
@@ -39,8 +38,8 @@ router.post(
   }
 );
 
-/* GET ALL (PROTECTED) */
-router.get("/submissions", auth, async (req, res) => {
+/* ADMIN GET ALL (IMPORTANT) */
+router.get("/admin/submissions", async (req, res) => {
   try {
     const data = await Submission.find().sort({ createdAt: -1 });
     res.json(data);
@@ -49,21 +48,13 @@ router.get("/submissions", auth, async (req, res) => {
   }
 });
 
-/* DELETE (PROTECTED) */
-router.delete("/:id", auth, async (req, res) => {
+/* DELETE */
+router.delete("/admin/delete/:id", async (req, res) => {
   try {
     await Submission.findByIdAndDelete(req.params.id);
     res.json({ message: "Deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: "Delete failed" });
-  }
-});
-  router.get("/admin/submissions", async (req, res) => {
-  try {
-    const data = await Submission.find().sort({ createdAt: -1 });
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ message: "Error fetching data" });
   }
 });
 
