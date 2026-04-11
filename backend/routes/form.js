@@ -39,10 +39,34 @@ router.post(
   }
 );
 
-/* GET ALL (PROTECTED) */
+/* GET ALL (PROTECTED - OPTIONAL) */
 router.get("/submissions", auth, async (req, res) => {
-  const data = await Submission.find().sort({ createdAt: -1 });
-  res.json(data);
+  try {
+    const data = await Submission.find().sort({ createdAt: -1 });
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching data" });
+  }
+});
+
+/* ADMIN GET ALL (USED BY admin.html) */
+router.get("/admin/submissions", async (req, res) => {
+  try {
+    const data = await Submission.find().sort({ createdAt: -1 });
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching data" });
+  }
+});
+
+/* DELETE SUBMISSION */
+router.delete("/admin/delete/:id", async (req, res) => {
+  try {
+    await Submission.findByIdAndDelete(req.params.id);
+    res.json({ message: "Deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Delete failed" });
+  }
 });
 
 module.exports = router;
