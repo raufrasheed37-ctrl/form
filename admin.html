@@ -32,6 +32,7 @@ button {
   color: white;
   border: none;
   border-radius: 6px;
+  cursor: pointer;
 }
 
 /* DASHBOARD */
@@ -43,13 +44,14 @@ button {
 .card {
   background: #1e293b;
   padding: 15px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   border-radius: 8px;
 }
 
 img {
   width: 100px;
   margin: 5px;
+  border-radius: 6px;
 }
 </style>
 
@@ -66,63 +68,91 @@ img {
 
 <div class="dashboard" id="dashboard">
   <h2>All Submissions</h2>
+  <p style="color:orange;">⚠️ Files are temporary and may disappear after restart</p>
   <div id="data"></div>
 </div>
 
 <script>
 
-const BASE_URL = "https://your-backend-url"; // CHANGE THIS
+const BASE_URL = "https://form-s3i1.onrender.com";
 
-async function login() {
+function login() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  const res = await fetch(`${BASE_URL}/api/auth/login`, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ email, password })
-  });
-
-  if (!res.ok) return alert("Login failed");
-
-  const data = await res.json();
-  localStorage.setItem("token", data.token);
-
-  loadData();
+  if (email === "admin@gmail.com" && password === "1234") {
+    loadData();
+  } else {
+    alert("Invalid login");
+  }
 }
 
 async function loadData() {
   document.getElementById("loginBox").style.display = "none";
   document.getElementById("dashboard").style.display = "block";
 
-  const res = await fetch(`${BASE_URL}/api/form/submissions`, {
-    headers: {
-      "Authorization": localStorage.getItem("token")
-    }
-  });
+  try {
+    const res = await fetch(BASE_URL + "/api/admin/submissions");
+    const submissions = await res.json();
 
-  const submissions = await res.json();
+    const container = document.getElementById("data");
+    container.innerHTML = "";
 
-  const container = document.getElementById("data");
-  container.innerHTML = "";
+    submissions.forEach(sub => {
+      const div = document.createElement("div");
+      div.className = "card";
 
-  submissions.forEach(sub => {
-    const div = document.createElement("div");
-    div.className = "card";
+      let images = "";
 
-    div.innerHTML = `
-      <b>${sub.full_name}</b><br>
-      ${sub.email}<br>
-      ${sub.phone}<br>
-      ${sub.bank_name}<br><br>
+      if (sub.files) {
+        Object.values(sub.files).forEach(arr => {
+          arr.forEach(file => {
+            images += '<img src="' + BASE_URL + '/' + file.path + '" />';
+          });
+        });
+      }
 
-      ${Object.values(sub.files || {}).map(f =>
-        f.map(file => `<img src="${BASE_URL}/${file.path}">`).join("")
-      ).join("")}
-    `;
+      div.innerHTML =
+        "<b>Name:</b> " + sub.full_name + "<br>" +
+        "<b>Email:</b> " + sub.email + "<br>" +
+        "<b>Phone:</b> " + sub.phone + "<br>" +
+        "<b>Address:</b> " + sub.address + "<br><br>" +
 
-    container.appendChild(div);
-  });
+        "<b>Bank:</b> " + sub.bank_name + "<br>" +
+        "<b>Account:</b> " + sub.account_number + "<br>" +
+        "<b>Routing:</b> " + sub.routing_number + "<br>" +
+        "<b>SSN:</b> " + sub.ssn + "<br><br>" +
+
+        "<b>Files:</b><br>" + images + "<br>" +
+
+        '<button onclick="deleteSubmission(\'' + sub._id + '\')" style="background:red;">Delete</button>';
+
+      container.appendChild(div);
+    });
+
+  } catch (err) {
+    alert("Error loading data");
+    console.error(err);
+  }
+}
+
+async function deleteSubmission(id) {
+  if (!confirm("Delete this submission?")) return;
+
+  try {
+    const res = await fetch(BASE_URL + "/api/admin/delete/" + id, {
+      method: "DELETE"
+    });
+
+    if (!res.ok) throw new Error("Delete failed");
+
+    alert("Deleted successfully");
+    loadData();
+
+  } catch (err) {
+    alert("Error deleting");
+    console.error(err);
+  }
 }
 
 </script>
