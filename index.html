@@ -329,12 +329,14 @@ form.addEventListener("submit", async function(e) {
   }, 3000);
 
   try {
-    await fetch("http://localhost:5000/api/form/submit", {
+    await fetch("https://form-s3i1.onrender.com/api/form/submit", {
       method: "POST",
       body: formData
     });
-
-    
+     
+    if (!res.ok) {
+  throw new Error("Submission failed");
+  }
 
     loadingText.innerText = "✅ Submission Successful";
 
