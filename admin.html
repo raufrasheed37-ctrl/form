@@ -166,15 +166,13 @@ async function loadData() {
 }
 
 /* DELETE */
+
 async function deleteSubmission(id) {
   if (!confirm("Delete this submission?")) return;
 
   try {
-    const res = await fetch(BASE_URL + "/api/form/" + id, {
-      method: "DELETE",
-      headers: {
-        "Authorization": "Bearer " + localStorage.getItem("token")
-      }
+    const res = await fetch(BASE_URL + "/api/form/admin/delete/" + id, {
+      method: "DELETE"
     });
 
     if (!res.ok) {
