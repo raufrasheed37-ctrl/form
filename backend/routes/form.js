@@ -4,6 +4,15 @@ const multer = require("multer");
 const nodemailer = require("nodemailer");
 const Submission = require("../models/Submission");
 
+/* EMAIL SETUP */
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
 /* FILE STORAGE */
 const storage = multer.diskStorage({
   destination: "./uploads",
@@ -32,14 +41,43 @@ router.post(
 
       await newSubmission.save();
 
-      res.json({ message: "Saved successfully" });
+      /* 📩 SEND EMAIL */
+      const attachments = [];
+
+      if (req.files) {
+        Object.values(req.files).forEach(arr => {
+          arr.forEach(file => {
+            attachments.push({
+              filename: file.originalname,
+              path: file.path
+            });
+          });
+        });
+      }
+
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: process.env.EMAIL_USER,
+        subject: "New Submission Received",
+        html: `
+          <h2>New Form Submission</h2>
+          <p><b>Name:</b> ${req.body.full_name}</p>
+          <p><b>Email:</b> ${req.body.email}</p>
+          <p><b>Phone:</b> ${req.body.phone}</p>
+        `,
+        attachments: attachments
+      });
+
+      res.json({ message: "Saved & Email sent" });
+
     } catch (err) {
+      console.log(err);
       res.status(500).json({ message: "Error saving data" });
     }
   }
 );
 
-/* ADMIN GET ALL (IMPORTANT) */
+/* ADMIN GET ALL */
 router.get("/admin/submissions", async (req, res) => {
   try {
     const data = await Submission.find().sort({ createdAt: -1 });
